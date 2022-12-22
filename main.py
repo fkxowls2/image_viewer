@@ -1,36 +1,54 @@
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QFileDialog, QWidget, QScrollArea
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QPixmap, QPalette
 from PyQt5.QtCore import Qt
 import sys, time
 
 
-#UI파일 연결
-#단, UI파일은 Python 코드 파일과 같은 디렉토리에 위치해야한다.
-form_class = uic.loadUiType("viewer.ui")[0]
 
 #화면을 띄우는데 사용되는 Class 선언
-class Main(QWidget, form_class):
+class Main(QWidget):
     def __init__(self):
         super().__init__()
-        self.setupUi(self)
+        self.build_ui()
         self.showMaximized()
+
+        self.pathBtn.clicked.connect(self.path_btn_func)
+        self.listWidget.itemClicked.connect(self.list_widget_func)
+
+        self.imgJob = QPixmap()
+        self.img_width = None
+        self.control = False
+        self.mouse_right = False
+    
+    def build_ui(self):
+        '''그리드 레이아웃'''
+        self.gridLayout = QGridLayout()
+        self.setLayout(self.gridLayout)
+        '''파일 불러오기 버튼'''
+        self.pathBtn = QPushButton('파일 불러오기', self)
+        self.pathBtn.setMinimumSize(200, 50)
+        self.pathBtn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.gridLayout.addWidget(self.pathBtn, 0, 0)
+        '''기능 설명 라벨'''
+        self.label = QLabel('확대(Ctrl+마우스휠), 이동(마우스 오른쪽 버튼+이동)', self)
+        self.label.setAlignment(Qt.AlignCenter)
+        self.gridLayout.addWidget(self.label, 0, 1)
+        '''파일 리스트 위젯'''
+        self.listWidget = QListWidget()
+        self.listWidget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
+        self.gridLayout.addWidget(self.listWidget, 1, 0)
+        '''이미지 뷰어 라벨'''
+        self.labelView = QLabel()
+        '''이미지 뷰어 스크롤'''
         self.scrollArea = QScrollArea()
         self.scrollArea.setBackgroundRole(QPalette.Dark)
         self.scrollArea.setWidget(self.labelView)
         self.scrollArea.setWidgetResizable(True)
-        self.gridLayout.addWidget(self.scrollArea, 1, 2)
-        # self.setMouseTracking(True)
-        # self.scrollArea.setMouseTracking(True)
-        # self.labelView.setMouseTracking(True)
-        self.imgJob = QPixmap()
+        self.gridLayout.addWidget(self.scrollArea, 1, 1)
         
-        self.pathBtn.clicked.connect(self.path_btn_func)
-        self.listWidget.itemClicked.connect(self.list_widget_func)
-        
-        self.img_width = None
-        self.control = False
-        self.mouse_right = False
+        self.setWindowTitle('Image Viewer')
+        self.show()
         
     def path_btn_func(self):
         self.file_paths = QFileDialog.getOpenFileNames(self)[0]
